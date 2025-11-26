@@ -22,19 +22,23 @@ The primary architectural component is the LSTM unit. Unlike standard RNNs, LSTM
 
 For a given input sequence at time step $t$, denoted as $x_t$, and the previous hidden state $h_{t-1}$, the transition equations are defined as follows:
 
-1.  **Forget Gate ($f_t$)**: Determines what information to discard from the cell state.
-    $$ f_t = \sigma(W_f \cdot [h_{t-1}, x_t] + b_f) $$
+**1. Forget Gate ($f_t$)**
+Determines what information to discard from the cell state.
+$$ f_t = \sigma(W_f \cdot [h_{t-1}, x_t] + b_f) $$
 
-2.  **Input Gate ($i_t$)**: Decides which new information is stored in the cell state.
-    $$ i_t = \sigma(W_i \cdot [h_{t-1}, x_t] + b_i) $$
-    $$ \tilde{C}_t = \tanh(W_C \cdot [h_{t-1}, x_t] + b_C) $$
+**2. Input Gate ($i_t$)**
+Decides which new information is stored in the cell state.
+$$ i_t = \sigma(W_i \cdot [h_{t-1}, x_t] + b_i) $$
+$$ \tilde{C}_t = \tanh(W_C \cdot [h_{t-1}, x_t] + b_C) $$
 
-3.  **Cell State Update ($C_t$)**: The old cell state is updated by forgetting the irrelevant parts and adding the new candidate values.
-    $$ C_t = f_t \odot C_{t-1} + i_t \odot \tilde{C}_t $$
+**3. Cell State Update ($C_t$)**
+The old cell state is updated by forgetting the irrelevant parts and adding the new candidate values.
+$$ C_t = f_t \odot C_{t-1} + i_t \odot \tilde{C}_t $$
 
-4.  **Output Gate ($o_t$)** and **Hidden State ($h_t$)**: Computes the output based on the cell state and the filtered input.
-    $$ o_t = \sigma(W_o \cdot [h_{t-1}, x_t] + b_o) $$
-    $$ h_t = o_t \odot \tanh(C_t) $$
+**4. Output Gate ($o_t$) and Hidden State ($h_t$)**
+Computes the output based on the cell state and the filtered input.
+$$ o_t = \sigma(W_o \cdot [h_{t-1}, x_t] + b_o) $$
+$$ h_t = o_t \odot \tanh(C_t) $$
 
 *Where $\sigma$ denotes the sigmoid activation function, and $\odot$ represents element-wise multiplication.*
 
