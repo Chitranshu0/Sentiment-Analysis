@@ -71,7 +71,7 @@ The project is structured to allow for reproducibility and ease of testing.
 *   Gradio (for the demonstration interface)
 
 ### Repository Structure
-*   `UI.py`: The interactive application script utilizing Gradio for real-time inference.
+*   `app.py`: The interactive application script utilizing Gradio for real-time inference.
 *   `Research_Paper.ipynb`: The computational notebook detailing the data preprocessing, model training, and validation steps.
 *   `sentiment_model_weights.pth`: The serialized parameters of the trained LSTM model.
 *   `twitter_sentiment.csv`: The dataset used for training and evaluation.
