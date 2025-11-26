@@ -1,84 +1,85 @@
-# 🧠 Advanced Twitter Sentiment Analysis
+# Sentiment Analysis of Short-Text Social Media Data Using Long Short-Term Memory (LSTM) Networks
 
-Welcome to the **Twitter Sentiment Analysis** project! This isn't just a regular code project; it's a deep dive into understanding human emotions using the power of **Artificial Intelligence** and **Mathematics**.
+## Abstract
 
-Imagine having a super-smart assistant that can read thousands of tweets in a second and tell you exactly how people are feeling—whether they are **Happy**, **Sad**, **Neutral**, or if the tweet is just **Irrelevant**. That's exactly what we built here!
+This repository contains the implementation and supplementary materials for a study on sentiment classification of Twitter data. The project leverages deep learning techniques, specifically Long Short-Term Memory (LSTM) networks, to capture sequential dependencies in short-text data. Furthermore, the study incorporates Local Interpretable Model-agnostic Explanations (LIME) to provide interpretability for the model's predictions, bridging the gap between black-box neural network performance and human-understandable reasoning.
 
----
+## 1. Introduction
 
-## 🚀 How It Works (Simply Put)
+Social media platforms generate vast amounts of unstructured textual data, presenting both a challenge and an opportunity for automated sentiment analysis. Traditional bag-of-words models often fail to capture the contextual nuances of language, such as sarcasm or negation. This project addresses these limitations by employing a Recurrent Neural Network (RNN) variant—the LSTM—which is designed to mitigate the vanishing gradient problem and effectively model long-range dependencies in text sequences.
 
-1.  **Input**: You feed the model a tweet (like "I love this sunny day!").
-2.  **Processing**: The computer breaks this sentence down into numbers (because computers love numbers, not words).
-3.  **Thinking (The AI Brain)**: It uses a special brain structure called **LSTM** (Long Short-Term Memory) to understand the *context*. It knows that "not good" is different from "good" because it remembers the word "not" from before.
-4.  **Decision**: It gives a score for each emotion and picks the highest one.
-5.  **Explanation**: It even highlights *why* it picked that emotion (e.g., highlighting the word "love").
+## 2. Methodology
 
----
+The core of the proposed system is a supervised learning pipeline that processes raw text, maps it to a high-dimensional vector space, and classifies it into one of four sentiment categories: Positive, Negative, Neutral, or Irrelevant.
 
-## 🧮 The "Super Math" Behind the Magic
+### 2.1. Vector Space Representation (Word Embeddings)
 
-To make this work, we use some really cool mathematical concepts. If you are writing a research paper, these formulas are the "secret sauce" of our model.
+To facilitate numerical computation, discrete textual tokens are mapped to continuous vector representations. Let $V$ be the vocabulary size and $d$ be the embedding dimension. Each word $w$ is represented as a vector $e_w \in \mathbb{R}^d$. This dense representation allows the model to capture semantic similarities between words based on their geometric proximity in the vector space.
 
-### 1. Word Embeddings (Turning Words into Math)
-First, we turn every word into a list of numbers (a vector). Imagine a map where similar words like "happy" and "joy" are close together.
-$$ E(w) \in \mathbb{R}^d $$
-*Where $E(w)$ is the vector for word $w$, and $d$ is the size of that vector (we used 128 dimensions!).*
+### 2.2. Sequential Modeling with LSTM
 
-### 2. LSTM (The Memory Cell)
-This is the heart of the project. Standard neural networks forget what they just read, but **LSTMs** remember! They have "gates" that decide what to keep and what to throw away.
+The primary architectural component is the LSTM unit. Unlike standard RNNs, LSTMs maintain a cell state $C_t$ that acts as a conveyor belt for information, regulated by three distinct gates: the forget gate, the input gate, and the output gate.
 
-Here are the actual equations the computer solves for every single word:
+For a given input sequence at time step $t$, denoted as $x_t$, and the previous hidden state $h_{t-1}$, the transition equations are defined as follows:
 
-*   **Forget Gate ($f_t$)**: "Should I forget the previous stuff?"
+1.  **Forget Gate ($f_t$)**: Determines what information to discard from the cell state.
     $$ f_t = \sigma(W_f \cdot [h_{t-1}, x_t] + b_f) $$
-*   **Input Gate ($i_t$)**: "Is this new word important?"
+
+2.  **Input Gate ($i_t$)**: Decides which new information is stored in the cell state.
     $$ i_t = \sigma(W_i \cdot [h_{t-1}, x_t] + b_i) $$
-*   **Cell State ($C_t$)**: Updating the long-term memory.
     $$ \tilde{C}_t = \tanh(W_C \cdot [h_{t-1}, x_t] + b_C) $$
-    $$ C_t = f_t \cdot C_{t-1} + i_t \cdot \tilde{C}_t $$
-*   **Output Gate ($o_t$)**: "What should I tell the next layer?"
+
+3.  **Cell State Update ($C_t$)**: The old cell state is updated by forgetting the irrelevant parts and adding the new candidate values.
+    $$ C_t = f_t \odot C_{t-1} + i_t \odot \tilde{C}_t $$
+
+4.  **Output Gate ($o_t$)** and **Hidden State ($h_t$)**: Computes the output based on the cell state and the filtered input.
     $$ o_t = \sigma(W_o \cdot [h_{t-1}, x_t] + b_o) $$
-    $$ h_t = o_t \cdot \tanh(C_t) $$
+    $$ h_t = o_t \odot \tanh(C_t) $$
 
-*Don't worry if it looks scary! It's just a fancy way of saying: "Take the old memory, mix it with the new word, and decide what to remember next."*
+*Where $\sigma$ denotes the sigmoid activation function, and $\odot$ represents element-wise multiplication.*
 
-### 3. Softmax (Making the Final Decision)
-Once the LSTM finishes reading the tweet, it gives us raw scores (logits). We use the **Softmax Function** to turn these scores into probabilities (percentages).
+### 2.3. Classification Layer
+
+The final hidden state $h_T$ of the sequence is passed through a fully connected (dense) layer. To obtain a probability distribution over the $K$ sentiment classes, the Softmax function is applied to the logits $z$:
 
 $$ P(y=j|x) = \frac{e^{z_j}}{\sum_{k=1}^K e^{z_k}} $$
 
-*   $z_j$ is the score for emotion $j$.
-*   The result is a probability between 0 and 1. If "Positive" gets 0.95, the model is 95% sure!
+This yields the conditional probability that the input text $x$ belongs to class $j$.
 
-### 4. LIME (Explainability)
-We don't just want the answer; we want to know *why*. We use **LIME** (Local Interpretable Model-agnostic Explanations). It tries to fit a simple math line locally around our specific tweet to see which words pushed the decision the most.
+### 2.4. Model Interpretability (LIME)
+
+To ensure the reliability of the model, we employ LIME to approximate the complex non-linear decision boundary locally with an interpretable linear model. This allows us to identify specific tokens that exert the most significant influence on the prediction.
+
+The explanation model $\xi(x)$ is obtained by minimizing the following objective:
 
 $$ \xi(x) = \underset{g \in G}{\text{argmin}} \ \mathcal{L}(f, g, \pi_x) + \Omega(g) $$
 
-*In simple English: It tests variations of your sentence to see which words carry the most weight.*
+Here, $\mathcal{L}$ measures the fidelity of the explanation $g$ to the original model $f$ within the locality $\pi_x$, and $\Omega(g)$ penalizes the complexity of the explanation.
 
----
+## 3. Implementation and Usage
 
-## 🛠️ Project Structure
+The project is structured to allow for reproducibility and ease of testing.
 
-*   `UI.py`: The main application code. It runs the website where you can type tweets.
-*   `sentiment_model_weights.pth`: The "brain" of the AI. This file contains the learned patterns from training.
-*   `Research_Paper.ipynb`: The laboratory notebook where we trained and tested the model.
-*   `twitter_sentiment.csv`: The dataset used to teach the AI.
+### Prerequisites
+*   Python 3.8+
+*   PyTorch
+*   Pandas, NumPy
+*   Gradio (for the demonstration interface)
 
-## 💻 How to Run This
+### Repository Structure
+*   `UI.py`: The interactive application script utilizing Gradio for real-time inference.
+*   `Research_Paper.ipynb`: The computational notebook detailing the data preprocessing, model training, and validation steps.
+*   `sentiment_model_weights.pth`: The serialized parameters of the trained LSTM model.
+*   `twitter_sentiment.csv`: The dataset used for training and evaluation.
 
-1.  **Install the requirements**:
-    ```bash
-    pip install torch pandas gradio torchtext matplotlib seaborn lime
-    ```
-2.  **Run the App**:
-    ```bash
-    python UI.py
-    ```
-3.  **Open your browser**: Click the link that appears (usually `http://127.0.0.1:7860`).
+### Execution
+To launch the inference interface locally:
 
----
+```bash
+pip install -r requirements.txt  # Ensure dependencies are installed
+python UI.py
+```
 
-*Created with ❤️ for research and learning.*
+## 4. Conclusion
+
+This implementation demonstrates the efficacy of LSTM networks in handling the sequential nature of social media text. By integrating LIME, the system not only achieves high classification accuracy but also provides necessary transparency, making it suitable for applications requiring explainable AI.
